@@ -1,0 +1,93 @@
+@page "/"
+@rendermode InteractiveServer
+
+<PageTitle>Square board</PageTitle>
+
+<section class="studio">
+    <h1>Square board</h1>
+    <p>Paint walls and the two start rows. The top of the grid is the top of the board. Look shows which squares a ring can see.</p>
+
+    <div class="row">
+        <label>
+            Name
+            <input @bind="Studio.Board.Name" maxlength="40" />
+        </label>
+        <label>
+            Width
+            <input type="number" min="6" max="20" value="@Studio.Width" @onchange="OnWidth" />
+        </label>
+        <label>
+            Height
+            <input type="number" min="6" max="20" value="@Studio.Height" @onchange="OnHeight" />
+        </label>
+        <label>
+            Ring
+            <input type="number" min="1" max="5" @bind="Studio.BurstSize" />
+        </label>
+    </div>
+
+    <div class="row">
+        <button type="button" class="@Pick("floor")" @onclick='() => Studio.Tool = "floor"'>Floor</button>
+        <button type="button" class="@Pick("wall")" @onclick='() => Studio.Tool = "wall"'>Wall</button>
+        <button type="button" class="@Pick("a")" @onclick='() => Studio.Tool = "a"'>Side A</button>
+        <button type="button" class="@Pick("b")" @onclick='() => Studio.Tool = "b"'>Side B</button>
+        <button type="button" class="@Pick("look")" @onclick='() => Studio.Tool = "look"'>Look</button>
+        <button type="button" @onclick="Studio.NewBoard">New board</button>
+    </div>
+
+    <p class="meta">@Studio.Board.Walls.Count walls · @Studio.Board.SideA.Count side A · @Studio.Board.SideB.Count side B</p>
+
+    <div class="sheet" aria-label="Board">
+        @for (var y = Studio.Board.MaxY; y >= Studio.Board.MinY; y--)
+        {
+            var sy = y;
+            <div class="rank">
+                @for (var x = Studio.Board.MinX; x <= Studio.Board.MaxX; x++)
+                {
+                    var sx = x;
+                    <button type="button" class="cell @Look(sx, sy)" title="@Title(sx, sy)" @onclick="() => Studio.Paint(sx, sy)"></button>
+                }
+            </div>
+        }
+    </div>
+</section>
+
+@code {
+    [Inject]
+    public Studio Studio { get; set; } = default!;
+
+    private string Pick(string tool) => Studio.Tool == tool ? "on" : "";
+
+    private void OnWidth(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var size))
+            Studio.Width = size;
+    }
+
+    private void OnHeight(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var size))
+            Studio.Height = size;
+    }
+
+    private string Look(int x, int y)
+    {
+        var kind = Studio.Board.IsWall(x, y) ? "wall"
+            : Board.Contains(Studio.Board.SideA, x, y) ? "side-a"
+            : Board.Contains(Studio.Board.SideB, x, y) ? "side-b"
+            : "";
+        if (Studio.LookX == x && Studio.LookY == y)
+            kind = $"{kind} origin".Trim();
+        else if (Studio.IsSeen(x, y))
+            kind = $"{kind} seen".Trim();
+        return kind;
+    }
+
+    private string Title(int x, int y) => Look(x, y) switch
+    {
+        "wall" => $"Wall {x},{y}",
+        "side-a" => $"Side A {x},{y}",
+        "side-b" => $"Side B {x},{y}",
+        _ => $"{x},{y}",
+    };
+}

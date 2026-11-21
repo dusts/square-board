@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/SquareBoard.Painter/SquareBoard.Painter.csproj" />
+    <Project Path="src/SquareBoard/SquareBoard.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/SquareBoard.Tests/SquareBoard.Tests.csproj" />
+  </Folder>
+</Solution>
